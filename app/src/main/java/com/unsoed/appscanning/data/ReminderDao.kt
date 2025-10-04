@@ -14,9 +14,9 @@ interface ReminderDao {
     @Delete
     suspend fun delete(reminder: Reminder)
 
-    @Query("SELECT * FROM reminder ORDER BY time ASC")  // ✅ samakan nama tabel
+    @Query("SELECT * FROM reminder ORDER BY time ASC")  
     suspend fun getAllReminders(): List<Reminder>
 
-    @Query("SELECT * FROM reminder WHERE id = :id LIMIT 1")  // ✅ samakan nama tabel
+    @Query("SELECT * FROM reminder WHERE id = :id LIMIT 1") 
     suspend fun getReminderById(id: Int): Reminder?
 }

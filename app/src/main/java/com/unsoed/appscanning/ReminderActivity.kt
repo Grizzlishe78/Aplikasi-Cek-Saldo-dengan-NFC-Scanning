@@ -31,7 +31,6 @@ class ReminderActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder)
 
-        // 🔹 Inisialisasi RecyclerView
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ReminderAdapter(reminders) { reminder ->
@@ -45,7 +44,7 @@ class ReminderActivity : AppCompatActivity() {
             startActivity(Intent(this, AddEditReminderActivity::class.java))
         }
 
-        // 🔔 Izin notifikasi (Android 13+)
+        // Izin notifikasi
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -56,7 +55,7 @@ class ReminderActivity : AppCompatActivity() {
             }
         }
 
-        // ⏰ Izin exact alarm (Android 12+)
+        // Izin exact alarm 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -76,7 +75,6 @@ class ReminderActivity : AppCompatActivity() {
         loadReminders()
     }
 
-    // 🔹 Ambil data reminder dari database dan jadwalkan alarm
     private fun loadReminders() {
         val db = AppDatabase.getDatabase(this)
         lifecycleScope.launch {
@@ -99,7 +97,6 @@ class ReminderActivity : AppCompatActivity() {
         }
     }
 
-    // 🔹 Menjadwalkan notifikasi dengan akurasi tinggi
     private fun scheduleReminder(reminder: Reminder) {
         if (reminder.time < System.currentTimeMillis()) return // Lewat waktu, abaikan
 
@@ -150,7 +147,6 @@ class ReminderActivity : AppCompatActivity() {
         }
     }
 
-    // 🔹 Callback izin notifikasi
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,

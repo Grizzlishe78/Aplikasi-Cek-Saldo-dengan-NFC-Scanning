@@ -34,7 +34,7 @@ class ReminderReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Intent ketika user menekan notifikasi
+        // User menekan notifikasi
         val intentToApp = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             context,

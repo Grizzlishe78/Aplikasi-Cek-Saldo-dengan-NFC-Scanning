@@ -15,17 +15,13 @@ abstract class AppDatabase : RoomDatabase() {
         private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
-            // Gunakan instance yang sudah ada jika tersedia
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "reminder_database"
                 )
-                    // Tambahkan fallback agar tidak crash jika versi DB berubah
                     .fallbackToDestructiveMigration()
-                    // Tambahkan allowMainThreadQueries() untuk debugging (opsional)
-                    //.allowMainThreadQueries()
                     .build()
 
                 INSTANCE = instance

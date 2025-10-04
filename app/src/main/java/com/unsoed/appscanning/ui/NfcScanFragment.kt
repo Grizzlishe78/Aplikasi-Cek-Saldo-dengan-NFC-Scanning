@@ -35,10 +35,6 @@ class NfcScanFragment : Fragment() {
         return view
     }
 
-    /**
-     * Dipanggil oleh Activity ketika onNewIntent menerima Tag NFC.
-     * Pastikan MainActivity meneruskan Tag ke sini.
-     */
     fun onTagDiscovered(tag: Tag) {
         // format UID byte -> hex (masked)
         val uid = tag.id.joinToString(":") { b ->
