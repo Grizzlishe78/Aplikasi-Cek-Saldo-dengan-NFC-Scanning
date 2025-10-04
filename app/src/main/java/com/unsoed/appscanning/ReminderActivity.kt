@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
@@ -20,6 +21,7 @@ import com.unsoed.appscanning.data.AppDatabase
 import com.unsoed.appscanning.data.Reminder
 import com.unsoed.appscanning.notification.ReminderReceiver
 import kotlinx.coroutines.launch
+import java.util.*
 
 class ReminderActivity : AppCompatActivity() {
 
@@ -33,18 +35,29 @@ class ReminderActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ReminderAdapter(reminders) { reminder ->
-            val intent = Intent(this, AddEditReminderActivity::class.java)
-            intent.putExtra("reminder_id", reminder.id)
-            startActivity(intent)
-        }
+
+        adapter = ReminderAdapter(
+            reminders,
+            onItemClick = { reminder ->
+                val intent = Intent(this, AddEditReminderActivity::class.java)
+                intent.putExtra("reminder_id", reminder.id)
+                startActivity(intent)
+            },
+            onDeleteClick = { reminder ->
+                confirmDelete(reminder)
+            }
+        )
         recyclerView.adapter = adapter
 
         findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener {
             startActivity(Intent(this, AddEditReminderActivity::class.java))
         }
 
-        // Izin notifikasi
+        requestPermissionsIfNeeded()
+    }
+
+    // 🔹 Cek izin notifikasi dan alarm
+    private fun requestPermissionsIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -55,13 +68,12 @@ class ReminderActivity : AppCompatActivity() {
             }
         }
 
-        // Izin exact alarm 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
                 Toast.makeText(
                     this,
-                    "Aktifkan izin 'Exact Alarm' agar pengingat berjalan tepat waktu.",
+                    "Aktifkan izin 'Alarm' agar pengingat berjalan tepat waktu.",
                     Toast.LENGTH_LONG
                 ).show()
                 val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
@@ -98,7 +110,7 @@ class ReminderActivity : AppCompatActivity() {
     }
 
     private fun scheduleReminder(reminder: Reminder) {
-        if (reminder.time < System.currentTimeMillis()) return // Lewat waktu, abaikan
+        if (reminder.time < System.currentTimeMillis()) return
 
         val intent = Intent(this, ReminderReceiver::class.java).apply {
             putExtra("title", reminder.title)
@@ -131,20 +143,51 @@ class ReminderActivity : AppCompatActivity() {
                     )
                 }
             }
-
-            Toast.makeText(
-                this,
-                "Reminder \"${reminder.title}\" dijadwalkan tepat waktu.",
-                Toast.LENGTH_SHORT
-            ).show()
         } catch (e: SecurityException) {
             e.printStackTrace()
             Toast.makeText(
                 this,
-                "Gagal menjadwalkan alarm: perlu izin Exact Alarm.",
+                "Gagal menjadwalkan alarm: perlu izin Alarm.",
                 Toast.LENGTH_LONG
             ).show()
         }
+    }
+
+    // 🔹 Konfirmasi hapus
+    private fun confirmDelete(reminder: Reminder) {
+        AlertDialog.Builder(this)
+            .setTitle("Hapus Reminder")
+            .setMessage("Apakah Anda yakin ingin menghapus reminder \"${reminder.title}\"?")
+            .setPositiveButton("Hapus") { _, _ ->
+                deleteReminder(reminder)
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun deleteReminder(reminder: Reminder) {
+        val db = AppDatabase.getDatabase(this)
+        lifecycleScope.launch {
+            db.reminderDao().delete(reminder)
+            cancelReminder(reminder)
+
+            runOnUiThread {
+                adapter.removeItem(reminder)
+                Toast.makeText(this@ReminderActivity, "Reminder dihapus", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun cancelReminder(reminder: Reminder) {
+        val intent = Intent(this, ReminderReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            reminder.id,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(pendingIntent)
     }
 
     override fun onRequestPermissionsResult(

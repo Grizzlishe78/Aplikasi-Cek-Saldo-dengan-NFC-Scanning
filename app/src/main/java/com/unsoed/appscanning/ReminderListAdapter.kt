@@ -24,11 +24,11 @@ class ReminderListAdapter(
         val reminder = reminders[position]
         val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
         val tvDate = view.findViewById<TextView>(R.id.tvDate)
-        val tvAmount = view.findViewById<TextView?>(R.id.tvAmount) // optional
+        //val tvAmount = view.findViewById<TextView?>(R.id.tvAmount)
 
         tvTitle.text = reminder.title
         tvDate.text = reminder.date
-        tvAmount?.text = "Rp ${reminder.amount}"
+        //tvAmount?.text = "Rp ${reminder.amount}"
 
         return view
     }
