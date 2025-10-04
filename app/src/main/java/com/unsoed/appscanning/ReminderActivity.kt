@@ -56,7 +56,7 @@ class ReminderActivity : AppCompatActivity() {
         requestPermissionsIfNeeded()
     }
 
-    // 🔹 Cek izin notifikasi dan alarm
+    // Cek izin notifikasi dan alarm
     private fun requestPermissionsIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(
@@ -153,7 +153,7 @@ class ReminderActivity : AppCompatActivity() {
         }
     }
 
-    // 🔹 Konfirmasi hapus
+    // Konfirmasi hapus
     private fun confirmDelete(reminder: Reminder) {
         AlertDialog.Builder(this)
             .setTitle("Hapus Reminder")
